@@ -41,7 +41,7 @@ psyche_deps(){
 	echo 'include $(call all-subdir-makefiles)' > vendor/xiaomi-firmware/Android.mk
 	
 	# type info when exit
-	if [[ -d hardware/xiaomi ]] && [[ -d device/xiaomi/psyche ]] && [[ -d vendor/xiaomi/psyche ]] && [[ kernel/xiaomi/void-aosp-sm8250 ]] && [[ -d vendor/xiaomi-firmware/psyche ]] && [[ -d prebuilts/clang/host/linux-x86/ZyC-clang ]];then
+	if [[ -d hardware/xiaomi ]] && [[ -d device/xiaomi/psyche ]] && [[ -d vendor/xiaomi/psyche ]] && [[ -d kernel/xiaomi/void-aosp-sm8250 ]] && [[ -d vendor/xiaomi-firmware/psyche ]] && [[ -d prebuilts/clang/host/linux-x86/ZyC-clang ]];then
 		echo -e "\n\033[1;32m=>\033[0m here you're on the way, eg: lunch"
 	fi
 }
