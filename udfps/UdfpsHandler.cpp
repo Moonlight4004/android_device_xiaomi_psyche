@@ -113,24 +113,18 @@ class XiaomiKonaUdfpsHandler : public UdfpsHandler {
     }
 
     void onAcquired(int32_t result, int32_t vendorCode) {
-        if (result == FINGERPRINT_ACQUIRED_GOOD) {
+        if (result == FINGERPRINT_ACQUIRED_GOOD || vendorCode == 23) {
 	    set(DISPPARAM_PATH, DISPPARAM_FOD_HBM_OFF);
             int arg[2] = {TOUCH_FOD_ENABLE, FOD_STATUS_OFF};
             ioctl(touch_fd_.get(), TOUCH_IOC_SETMODE, &arg);
-        } else if (vendorCode == 20 || vendorCode == 21 || vendorCode == 22 || vendorCode == 23 || vendorCode == 33)  {
+        } else if (vendorCode == 20 || vendorCode == 22)  {
             /*
-			 * my lock srcreen low brightness: vendorCode: 6: 21 -> 22 -> 20 -> 33
-			 * my lock srcreen high brightness: vendorCode: 6: 22 -> 20 -> 44 -> 0
+	    		 *
+			 * Register = 22 & 20 - finger down ; 23 - finger up
+			 *	low brightness = 21 - waiting ; 20 - finger down ; 33 - failed ; and end 8,6 message
 			 *
-			 * enroll with high brightness: 6: 21 -> 22 -> 20 -> 0 -> 23
-			 * my off screen: 6: 22 -> 20
 			 *
-			 * vendorCode =20 log show finger move or out of screen
-             * vendorCode = 21 prepare and waiting for fingerprint authentication
-			 * vendorCode = 22 log show finger down
-             * vendorCode = 23 log show finger up & waiting for fingerprint enroll
-			 * vendorCode = 33 ? on lock screen when finger down & auth ( low brightness )
-			 * vendorCode = 44 log show on authentication ( high brightness )
+			 *
 			 *
 			 * Fod pass authented = 0
 			 * Fod ditry: 3, 0
