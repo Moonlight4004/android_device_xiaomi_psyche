@@ -1,158 +1,160 @@
-/*
- * Copyright (C) 2022 The LineageOS Project
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+#!/bin/bash
+# This file is generated for Xiaomi 12X (psyche)
+# bash this file in device/xiaomi/psyche to SuperiorOS bringup
 
-#define LOG_TAG "UdfpsHandler.xiaomi_kona"
+if [[ -d build ]];then
+	script_mode='ANDROID_SETUP'
+elif [[ -f BoardConfig.mk ]];then
+	script_mode='DT_BRINGUP'
+else
+	script_mode='SKIP_EXIT'
+fi
 
-#include "UdfpsHandler.h"
-
-#include <android-base/logging.h>
-#include <android-base/unique_fd.h>
-#include <fcntl.h>
-#include <poll.h>
-#include <fstream>
-#include <thread>
-#include <unistd.h>
-
-#define COMMAND_NIT 10
-#define PARAM_NIT_FOD 1
-#define PARAM_NIT_NONE 0
-
-#define FOD_STATUS_ON 1
-#define FOD_STATUS_OFF -1
-
-#define TOUCH_DEV_PATH "/dev/xiaomi-touch"
-#define TOUCH_FOD_ENABLE 10
-#define TOUCH_MAGIC 0x5400
-#define TOUCH_IOC_SETMODE TOUCH_MAGIC + 0
-
-#define DISPPARAM_PATH "/sys/devices/platform/soc/ae00000.qcom,mdss_mdp/drm/card0/card0-DSI-1/disp_param"
-#define DISPPARAM_FOD_HBM_OFF "0xE0000"
-
-static const char* kFodUiPaths[] = {
-        "/sys/devices/platform/soc/soc:qcom,dsi-display-primary/fod_ui",
-        "/sys/devices/platform/soc/soc:qcom,dsi-display/fod_ui",
-};
-namespace {
-
-
-template <typename T>
-static void set(const std::string& path, const T& value) {
-    std::ofstream file(path);
-    file << value;
+git_check_dir(){
+	if [[ ! -d $3 ]];then
+		mkdir -p $(dirname $3)
+		git clone --depth=1 $1 -b $2 $3
+	else
+		echo -e "\033[1;32m=>\033[0m Found $3"
+	fi
 }
 
-} // anonymous namespace
+psyche_deps(){
+	# use git_check_dir to setup dependencies
+	# hardware/xiaomi: use AOSPA
 
-static bool readBool(int fd) {
-    char c;
-    int rc;
+	git_check_dir https://github.com//LineageOS/android_hardware_xiaomi lineage-20 hardware/xiaomi
+	
+		git_check_dir https://github.com/stuartore/android_device_xiaomi_psyche $1 device/xiaomi/psyche
+	
+	git_check_dir https://gitlab.com/stuartore/android_vendor_xiaomi_psyche $2 vendor/xiaomi/psyche
+	git_check_dir https://gitlab.com/stuartore/vendor_xiaomi_psyche-firmware thirteen vendor/xiaomi-firmware/psyche
+	git_check_dir https://github.com/VoidUI-Devices/kernel_xiaomi_sm8250.git aosp-13 kernel/xiaomi/void-aosp-sm8250
 
-    rc = lseek(fd, 0, SEEK_SET);
-    if (rc) {
-        LOG(ERROR) << "failed to seek fd, err: " << rc;
-        return false;
-    }
+	# you can also use xiaomi_sm8250_devs kernel
+	#git_check_dir https://github.com/xiaomi-sm8250-devs/android_kernel_xiaomi_sm8250.git lineage-20 kernel/xiaomi/devs-sm8250
 
-    rc = read(fd, &c, sizeof(char));
-    if (rc != 1) {
-        LOG(ERROR) << "failed to read bool from fd, err: " << rc;
-        return false;
-    }
+	# clang
+	git_check_dir https://github.com/EmanuelCN/zyc_clang-14.git master prebuilts/clang/host/linux-x86/ZyC-clang
 
-    return c != '0';
+	# other
+	echo 'include $(call all-subdir-makefiles)' > vendor/xiaomi-firmware/Android.mk
+
+	# type info when exit
+	if [[ -d hardware/xiaomi ]] && [[ -d device/xiaomi/psyche ]] && [[ -d vendor/xiaomi/psyche ]] && [[ kernel/xiaomi/void-aosp-sm8250 ]] && [[ -d vendor/xiaomi-firmware/psyche ]] && [[ -d prebuilts/clang/host/linux-x86/ZyC-clang ]];then
+		echo -e "\n\033[1;32m=>\033[0m here you're on the way, eg: lunch"
+	fi
 }
 
-class XiaomiKonaUdfpsHandler : public UdfpsHandler {
-  public:
-    void init(fingerprint_device_t *device) {
-        mDevice = device;
-        touch_fd_ = android::base::unique_fd(open(TOUCH_DEV_PATH, O_RDWR));
+psyche_kernel_patch(){
+	# need remove 2 techpack Android.mk
+	psyche_kernel_path=$(grep TARGET_KERNEL_SOURCE device/xiaomi/psyche/BoardConfig.mk | grep -v '#' | sed 's/TARGET_KERNEL_SOURCE//g' | sed 's/:=//g' | sed 's/[[:space:]]//g')
 
-        std::thread([this]() {
-            int fd;
-            for (auto& path : kFodUiPaths) {
-                fd = open(path, O_RDONLY);
-                if (fd >= 0) {
-                    break;
-                }
-            }
-
-            if (fd < 0) {
-                LOG(ERROR) << "failed to open fd, err: " << fd;
-                return;
-            }
-
-            struct pollfd fodUiPoll = {
-                    .fd = fd,
-                    .events = POLLERR | POLLPRI,
-                    .revents = 0,
-            };
-
-            while (true) {
-                int rc = poll(&fodUiPoll, 1, -1);
-                if (rc < 0) {
-                    LOG(ERROR) << "failed to poll fd, err: " << rc;
-                    continue;
-                }
-			
-                mDevice->extCmd(mDevice, COMMAND_NIT,
-                                readBool(fd) ? PARAM_NIT_FOD : PARAM_NIT_NONE);
-            }
-        }).detach();
-    }
-
-    void onFingerDown(uint32_t /*x*/, uint32_t /*y*/, float /*minor*/, float /*major*/) {
-        // nothing
-    }
-
-    void onFingerUp() {
-        // nothing
-    }
-
-    void onAcquired(int32_t result, int32_t vendorCode) {
-        if (result == FINGERPRINT_ACQUIRED_GOOD || vendorCode == 23) {
-	    set(DISPPARAM_PATH, DISPPARAM_FOD_HBM_OFF);
-            int arg[2] = {TOUCH_FOD_ENABLE, FOD_STATUS_OFF};
-            ioctl(touch_fd_.get(), TOUCH_IOC_SETMODE, &arg);
-        } else if (vendorCode == 20 || vendorCode == 22)  {
-            /*
-	    		 *
-			 * Register = 22 & 20 - finger down ; 23 - finger up
-			 *	low brightness = 21 - waiting ; 20 - finger down ; 33 - failed ; and end 8,6 message
-			 *
-			 *
-			 *
-			 *
-			 * Fod pass authented = 0
-			 * Fod ditry: 3, 0
-             */
-            int arg[2] = {TOUCH_FOD_ENABLE, FOD_STATUS_ON};
-            ioctl(touch_fd_.get(), TOUCH_IOC_SETMODE, &arg);
-        }
-    }
-
-    void cancel() {
-	set(DISPPARAM_PATH, DISPPARAM_FOD_HBM_OFF);
-        int arg[2] = {TOUCH_FOD_ENABLE, FOD_STATUS_OFF};
-        ioctl(touch_fd_.get(), TOUCH_IOC_SETMODE, &arg);
-    }
-  private:
-    fingerprint_device_t *mDevice;
-    android::base::unique_fd touch_fd_;
-};
-
-static UdfpsHandler* create() {
-    return new XiaomiKonaUdfpsHandler();
+	rm -f $psyche_kernel_path/techpack/data/drivers/rmnet/perf/Android.mk
+	rm -f $psyche_kernel_path/techpack/data/drivers/rmnet/shs/Android.mk	
 }
 
-static void destroy(UdfpsHandler* handler) {
-    delete handler;
+dt_bringup_superior(){
+	# handle aosp_psyche
+	sed -i 's/aosp_psyche/superior_psyche/g' *.mk
+	sed -i 's/vendor\/aosp\/config/vendor\/superior\/config/g' aosp_psyche.mk
+	sed -i 's/vendor\/aosp\/config/vendor\/superior\/config/g' BoardConfig.mk
+	mv aosp_psyche.mk superior_psyche.mk
+
+	# handle overlay
+	overlay_custom_dir=$(find . -iname "overlay-*" | sed 's/.\///g')
+	mv $overlay_custom_dir overlay-superior
+	sed -i 's/overlay-aosp/overlay-superior/g' *.mk
+
+	# handle parts
 }
 
-extern "C" UdfpsHandlerFactory UDFPS_HANDLER_FACTORY = {
-    .create = create,
-    .destroy = destroy,
-};
+psyche_rom_select(){
+	select rom_to_build in "PixelExperience 13" "Superior 13" "Crdroid 13" "RiceDroid 13"
+	do
+		case $rom_to_build in
+			"PixelExperience 13")
+				dt_branch="thirteen"
+				;;
+			"Superior 13*")
+				dt_branch="superior-13"
+				;;
+			"Crdroid 13")
+				dt_branch="crd-13"
+				;;
+			"RiceDroid 13")
+				dt_branch="rice-13"
+				;;
+			*)
+				echo -e "\n\033[32m=>\033[0m not selected"
+				#exit 1
+				;;
+		esac
+		break
+	done
+}
+
+psyche_rom_setup(){
+	if [[ -d hardware/xiaomi ]] && [[ -d device/xiaomi/psyche ]] && [[ -d vendor/xiaomi/psyche ]] && [[ -d kernel/xiaomi/void-aosp-sm8250 ]] && [[ -d vendor/xiaomi-firmware/psyche ]] && [[ -d prebuilts/clang/host/linux-x86/ZyC-clang ]];then
+		return
+	fi
+
+	if [[ ! $(grep 'revision="android-13' .repo/manifests/default.xml) ]];then echo -e "\033[1;33m=>\033[0m SKIP - source code is \033[1;33mnot Android 13\033[0m";return;fi
+
+	select rom_version in "Stable" "Fastcharge"
+	do
+		case $rom_version in
+			"Stable")
+				vendor_branch='thirteen'
+				;;
+			*)
+				vendor_branch='superior-13-unstable'
+				;;
+		esac
+		break
+	done
+
+	rom_str="$(grep 'url' .repo/manifests.git/config | uniq | sed 's/url//g' | sed 's/=//g' | awk  -F '/' '{print $4}')"
+	if [[ ! -d device/xiaomi/psyche ]];then
+		case $rom_str in
+			"PixelExperience")
+				dt_branch="thirteen"
+				;;
+			"SuperiorOS")
+				dt_branch="superior-13"
+				;;
+			"crdroidandroid")
+				dt_branch="crd-13"
+			;;
+			"ricedroidOSS")
+				dt_branch="rice-13"
+				;;
+			*)
+				psyche_rom_select
+				;;
+		esac
+	else
+		dt_branch='rice-13'
+	fi
+
+	echo -e "\033[32m=>\033[0m Detect \033[1;36m${rom_str}\033[0m and select device branch \033[1;32m${dt_branch}\033[0m\n"
+	psyche_deps ${dt_branch} ${vendor_branch}
+}
+
+case $script_mode in
+	"DT_BRINGUP")
+		dt_bringup_superior
+		#exit 0
+		;;
+	"ANDROID_SETUP")
+		sleep .1
+		;;
+	*)
+		echo "Please copy this scrpit in Device tree directory for Xiaomi 12X(psyche)"
+		#exit 1
+		;;
+esac
+
+psyche_rom_setup
+psyche_kernel_patch
+
