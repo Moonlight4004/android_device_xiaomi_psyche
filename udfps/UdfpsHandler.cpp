@@ -97,17 +97,9 @@ class XiaomiKonaUdfpsHandler : public UdfpsHandler {
                     LOG(ERROR) << "failed to poll fd, err: " << rc;
                     continue;
                 }
-
-                if (readBool(fd)) {
-                    mDevice->extCmd(mDevice, COMMAND_NIT, PARAM_NIT_FOD);
-                    int arg[2] = {TOUCH_FOD_ENABLE, FOD_STATUS_ON};
-                    ioctl(touch_fd_.get(), TOUCH_IOC_SETMODE, &arg);
-                } else {
-                    mDevice->extCmd(mDevice, COMMAND_NIT, PARAM_NIT_NONE);
-                    set(DISPPARAM_PATH, DISPPARAM_FOD_HBM_OFF);
-                    int arg[2] = {TOUCH_FOD_ENABLE, FOD_STATUS_OFF};
-                    ioctl(touch_fd_.get(), TOUCH_IOC_SETMODE, &arg);
-                }
+			
+                mDevice->extCmd(mDevice, COMMAND_NIT,
+                                readBool(fd) ? PARAM_NIT_FOD : PARAM_NIT_NONE);
             }
         }).detach();
     }
@@ -121,12 +113,29 @@ class XiaomiKonaUdfpsHandler : public UdfpsHandler {
     }
 
     void onAcquired(int32_t result, int32_t vendorCode) {
-	// nothing
+        if (result == FINGERPRINT_ACQUIRED_GOOD || vendorCode == 23) {
+	    set(DISPPARAM_PATH, DISPPARAM_FOD_HBM_OFF);
+            int arg[2] = {TOUCH_FOD_ENABLE, FOD_STATUS_OFF};
+            ioctl(touch_fd_.get(), TOUCH_IOC_SETMODE, &arg);
+        } else if (vendorCode == 20 || vendorCode == 22)  {
+            /*
+	    		 *
+			 * Register = 22 & 20 - finger down ; 23 - finger up
+			 *	low brightness = 21 - waiting ; 20 - finger down ; 33 - failed ; and end 8,6 message
+			 *
+			 *
+			 *
+			 *
+			 * Fod pass authented = 0
+			 * Fod ditry: 3, 0
+             */
+            int arg[2] = {TOUCH_FOD_ENABLE, FOD_STATUS_ON};
+            ioctl(touch_fd_.get(), TOUCH_IOC_SETMODE, &arg);
+        }
     }
 
     void cancel() {
 	set(DISPPARAM_PATH, DISPPARAM_FOD_HBM_OFF);
-	mDevice->extCmd(mDevice, COMMAND_NIT, PARAM_NIT_NONE);
         int arg[2] = {TOUCH_FOD_ENABLE, FOD_STATUS_OFF};
         ioctl(touch_fd_.get(), TOUCH_IOC_SETMODE, &arg);
     }
@@ -147,4 +156,3 @@ extern "C" UdfpsHandlerFactory UDFPS_HANDLER_FACTORY = {
     .create = create,
     .destroy = destroy,
 };
-
