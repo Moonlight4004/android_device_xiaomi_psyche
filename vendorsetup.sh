@@ -1,6 +1,8 @@
 #!/bin/bash
 # This file is generated for Xiaomi 12X (psyche)
 
+dt_bringup_complished=0
+
 # ROM specs
 rising_specs(){
 	cat>>$1<<SPECS
@@ -60,6 +62,7 @@ SPECS
 # device bringup for current ROM
 dt_bringup(){
 	# patch device tree string
+	if [[ $dt_bringup_complished -eq 1 ]];then echo "Bring OK";return;fi
 
 	rom_spec_str="$(basename $(dirname "$(find vendor -maxdepth 2 -type d -iname 'bash_completion')"))"
 	cd device/xiaomi/psyche
@@ -79,10 +82,11 @@ dt_bringup(){
 	if [[ ! -f ${rom_spec_str}.dependencies ]];then
 		mv aosp.dependencies ${rom_spec_str}.dependencies
 	fi
+	if [[ ! -f ../../../vendor/${rom_spec_str}/config/device_framework_matrix.xml ]] && [[ -f configs/hidl/aosp_device_framework_matrix.xml ]];then
+		mv configs/hidl/aosp_device_framework_matrix.xml ../../../vendor/${rom_spec_str}/config/device_framework_matrix.xml
+	fi
 
-	if [[ $(grep AUTOADD $dt_new_main_mk) ]];then
-		cd ../../.. && return
-	else
+	if [[ ! $(grep AUTOADD $dt_new_main_mk) ]];then
 		sed -i '$a \
 \
 # Interit from '"$rom_str"' - AUTOADD \
@@ -102,6 +106,7 @@ dt_bringup(){
 				;;
 		esac
 	fi
+	sed -i '4s|dt_bringup_complished=.*|dt_bringup_complished=1|g' ${BASH_SOURCE}
 	cd ../../..
 }
 
