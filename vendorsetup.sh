@@ -24,6 +24,10 @@ SPECS
 
 superior_specs(){
 	cat>>$1<<SPECS
+IS_PHONE := true
+
+WITH_GMS := true
+
 # Charging Animation
 TARGET_INCLUDE_PIXEL_CHARGER := true
 
@@ -39,6 +43,7 @@ SUPERIOR_UDFPS_ANIMATIONS := true
 
 # Superior Prebuilts
 USE_MOTO_CALCULATOR := true
+USE_QUICKPIC := true
 SPECS
 }
 
@@ -62,13 +67,13 @@ SPECS
 # device bringup for current ROM
 dt_bringup(){
 	# patch device tree string
-	if [[ $dt_bringup_complished -eq 1 ]];then echo "Bring OK";return;fi
+	if [[ $dt_bringup_complished -eq 1 ]];then return;fi
 
-	rom_spec_str="$(basename $(dirname "$(find vendor -maxdepth 2 -type d -iname 'bash_completion')"))"
+	rom_spec_str="$(basename "$(find vendor -maxdepth 3 -type f -iname "common.mk" | sed 's/config.*//g')")"
 	cd device/xiaomi/psyche
-	dt_device_name="$(grep 'PRODUCT_DEVICE :=' *.mk --max-count=1 | sed 's/[[:space:]]//g' | sed 's/.*:=//g')"
+	dt_device_name="$(grep 'PRODUCT_DEVICE' *.mk --max-count=1 | sed 's/[[:space:]]//g' | sed 's/.*:=//g')"
 	dt_main_mk=$(grep 'PRODUCT_DEVICE :=' *.mk  --max-count=1 | sed 's/[[:space:]]//g' | sed 's/:PRODUCT_DEVICE.*//g')
-	dt_old_str=$(echo $dt_main_mk | sed 's/_'"${dt_device_name}"'.*//g')
+	dt_old_str=$(echo $dt_main_mk | sed 's/_.*//g')
 
 	sed -i 's/'"${dt_old_str}"'/'"${rom_spec_str}"'/g' AndroidProducts.mk
 	sed -i 's/'"${dt_old_str}"'/'"${rom_spec_str}"'/g' $dt_main_mk
@@ -78,7 +83,6 @@ dt_bringup(){
 	if [[ ! -f $dt_new_main_mk ]];then
 		mv $dt_main_mk $dt_new_main_mk
 	fi
-
 	if [[ ! -f ${rom_spec_str}.dependencies ]];then
 		mv aosp.dependencies ${rom_spec_str}.dependencies
 	fi
