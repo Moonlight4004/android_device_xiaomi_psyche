@@ -1,6 +1,111 @@
 #!/bin/bash
 # This file is generated for Xiaomi 12X (psyche)
 
+# ROM specs
+rising_specs(){
+	cat>>$1<<SPECS
+RICE_MAINTAINER := 斯图尔特
+RICE_DEVICE := Xiaomi 12X
+RICE_CHIPSET := Snapdragon®870
+
+EXTRA_UDFPS_ANIMATIONS := true
+TARGET_ENABLE_BLUR := true
+TARGET_USE_PIXEL_FINGERPRINT := true
+
+# Gapps
+WITH_GMS := true
+TARGET_CORE_GMS := true
+TARGET_USE_GOOGLE_TELEPHONY := true
+TARGET_FACE_UNLOCK_SUPPORTED := true
+SPECS
+}
+
+superior_specs(){
+	cat>>$1<<SPECS
+# Charging Animation
+TARGET_INCLUDE_PIXEL_CHARGER := true
+
+# Disable/Enable Blur Support, default is false
+TARGET_ENABLE_BLUR := true
+
+# Officialify
+SUPERIOR_OFFICIAL := false
+BUILD_WITH_GAPPS := true
+
+# Udfps Stuff
+SUPERIOR_UDFPS_ANIMATIONS := true
+
+# Superior Prebuilts
+USE_MOTO_CALCULATOR := true
+SPECS
+}
+
+derpfest_specs(){
+	cat>>$1<<SPECS
+# UDFPS animations
+EXTRA_UDFPS_ANIMATIONS := true
+
+TARGET_USES_MINI_GAPPS := true
+TARGET_SUPPORTS_GOOGLE_RECORDER := true
+SPECS
+}
+
+aosp_specs(){
+	cat>>$1<<SPECS
+TARGET_USES_MINI_GAPPS := true
+TARGET_SUPPORTS_GOOGLE_RECORDER := true
+SPECS
+}
+
+# device bringup for current ROM
+dt_bringup(){
+	# patch device tree string
+
+	rom_spec_str="$(basename $(dirname "$(find vendor -maxdepth 2 -type d -iname 'bash_completion')"))"
+	cd device/xiaomi/psyche
+	dt_device_name="$(grep 'PRODUCT_DEVICE :=' *.mk --max-count=1 | sed 's/[[:space:]]//g' | sed 's/.*:=//g')"
+	dt_main_mk=$(grep 'PRODUCT_DEVICE :=' *.mk  --max-count=1 | sed 's/[[:space:]]//g' | sed 's/:PRODUCT_DEVICE.*//g')
+	dt_old_str=$(echo $dt_main_mk | sed 's/_'"${dt_device_name}"'.*//g')
+
+	sed -i 's/'"${dt_old_str}"'/'"${rom_spec_str}"'/g' AndroidProducts.mk
+	sed -i 's/'"${dt_old_str}"'/'"${rom_spec_str}"'/g' $dt_main_mk
+	sed -i 's/vendor\/'"${dt_old_str}"'/vendor\/'"${rom_spec_str}"'/g' BoardConfig*.mk
+
+	dt_new_main_mk="${rom_spec_str}_psyche.mk"
+	if [[ ! -f $dt_new_main_mk ]];then
+		mv $dt_main_mk $dt_new_main_mk
+	fi
+
+	if [[ ! -f ${rom_spec_str}.dependencies ]];then
+		mv aosp.dependencies ${rom_spec_str}.dependencies
+	fi
+
+	if [[ $(grep AUTOADD $dt_new_main_mk) ]];then
+		cd ../../.. && return
+	else
+		sed -i '$a \
+\
+# Interit from '"$rom_str"' - AUTOADD \
+' $dt_new_main_mk
+		case $rom_spec_str in
+			"lineage")
+				rising_specs $dt_new_main_mk
+				;;
+			"superior")
+				superior_specs $dt_new_main_mk
+				;;
+			"derp")
+				derpfest_specs $dt_new_main_mk
+				;;
+			*)
+				aosp_specs $dt_new_main_mk
+				;;
+		esac
+	fi
+	cd ../../..
+}
+
+# Prepare sources
 git_check_dir(){
 	if [[ ! -d $3 ]];then
 		mkdir -p $(dirname $3)
@@ -44,76 +149,35 @@ psyche_kernel_patch(){
 	rm -f $psyche_kernel_path/techpack/data/drivers/rmnet/shs/Android.mk	
 }
 
-psyche_rom_select(){
-	select rom_to_build in "PixelExperience 13" "Superior 13" "Crdroid 13" "RiceDroid 13"
-	do
-		case $rom_to_build in
-			"PixelExperience 13")
-				dt_branch="thirteen"
-				;;
-			"Superior 13*")
-				dt_branch="superior-13"
-				;;
-			"RiceDroid 13")
-				dt_branch="rice-13"
-				;;
-			*)
-				dt_branch="thirteen"
-				#exit 1
-				;;
-		esac
-		break
-	done
-}
-
 psyche_rom_setup(){
+	rom_str="$(grep 'url' .repo/manifests.git/config | uniq | sed 's/url//g' | sed 's/=//g' | awk  -F '/' '{print $4}')"
 	if [[ -d hardware/xiaomi ]] && [[ -d device/xiaomi/psyche ]] && [[ -d vendor/xiaomi/psyche ]] && [[ -d kernel/xiaomi/void-aosp-sm8250 ]] && [[ -d vendor/xiaomi-firmware/psyche ]] && [[ -d prebuilts/clang/host/linux-x86/ZyC-clang ]];then
+		dt_bringup
 		return
 	fi
 
-	if [[ ! $(grep 'revision="android-13' .repo/manifests/default.xml) ]];then echo -e "\033[1;33m=>\033[0m SKIP - source code is \033[1;33mnot Android 13\033[0m";return;fi
-	rom_str="$(grep 'url' .repo/manifests.git/config | uniq | sed 's/url//g' | sed 's/=//g' | awk  -F '/' '{print $4}')"
+	if [[ ! $(grep 'revision="android-13' .repo/manifests/default.xml) ]];then echo -e "\033[1;33m=>\033[0m SKIP - source code is \033[1;33mnot Android 13\033[0m";exit;fi
 	
 	select rom_version in "Stable" "Fastcharge"
 	do
 		case $rom_version in
 			"Stable")
-				declare -i rom_stable=1
+				dt_branch='thirteen'
+				vendor_branch='thirteen'
 				;;
 			*)
-				declare -i rom_stable=0
+				dt_branch='thirteen-unstable'
+				vendor_branch='superior-13-unstable'
 				;;
 		esac
 		break
 	done
 
-	if [[ ! -d device/xiaomi/psyche ]];then
-		case $rom_str in
-			"PixelExperience")
-				dt_branch="thirteen"
-				;;
-			"SuperiorOS")
-				dt_branch="superior-13"
-				;;
-			"ricedroidOSS")
-				dt_branch="rice-13"
-				;;
-			*)
-				psyche_rom_select
-				;;
-		esac
-	fi
-
-	dt_branch_sel="${dt_branch}"
-	if [[ $rom_stable -eq 0 ]];then
-		dt_branch="${dt_branch_sel}-unstable"
-		vendor_branch='superior-13-unstable'
-	else
-		vendor_branch='thirteen'
-	fi
-
 	echo -e "\033[32m=>\033[0m Detect \033[1;36m${rom_str}\033[0m and select device branch \033[1;32m${dt_branch}\033[0m\n"
 	psyche_deps ${dt_branch} ${vendor_branch}
+
+	# device tree bringup
+	dt_bringup
 }
 
 psyche_rom_setup

@@ -17,15 +17,11 @@ $(call inherit-product, vendor/aosp/config/common_full_phone.mk)
 # Inherit from psyche device
 $(call inherit-product, device/xiaomi/psyche/device.mk)
 
-TARGET_USES_MINI_GAPPS := true
-TARGET_SUPPORTS_GOOGLE_RECORDER := true
-
 PRODUCT_NAME := aosp_psyche
 PRODUCT_DEVICE := psyche
 PRODUCT_MANUFACTURER := Xiaomi
 PRODUCT_BRAND := Xiaomi
 PRODUCT_MODEL := 2112123AC
-
 
 PRODUCT_GMS_CLIENTID_BASE := android-xiaomi
 
