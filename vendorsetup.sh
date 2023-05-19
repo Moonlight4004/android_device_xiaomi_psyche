@@ -6,10 +6,11 @@ dt_bringup_complished=0
 # ROM specs
 rising_specs(){
 	cat>>$1<<SPECS
-RICE_MAINTAINER := 斯图尔特
-RICE_DEVICE := Xiaomi 12X
-RICE_CHIPSET := Snapdragon®870
+RISING_MAINTAINER := 斯图尔特
+RISING_DEVICE := Xiaomi 12X
+RISING_CHIPSET := Snapdragon®870
 
+TARGET_HAS_UDFPS := true
 EXTRA_UDFPS_ANIMATIONS := true
 TARGET_ENABLE_BLUR := true
 TARGET_USE_PIXEL_FINGERPRINT := true
@@ -93,7 +94,7 @@ dt_bringup(){
 	if [[ ! $(grep AUTOADD $dt_new_main_mk) ]];then
 		sed -i '$a \
 \
-# Interit from '"$rom_str"' - AUTOADD \
+# Interit from '"$rom_str"' - AUTOADD\
 ' $dt_new_main_mk
 		case $rom_spec_str in
 			"lineage")
