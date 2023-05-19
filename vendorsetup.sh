@@ -1,7 +1,7 @@
 #!/bin/bash
 # This file is generated for Xiaomi 12X (psyche)
 
-dt_bringup_complished=1
+dt_bringup_complished=0
 
 # ROM specs
 rising_specs(){
@@ -166,8 +166,10 @@ psyche_rom_setup(){
 	fi
 
 	if [[ ! $(grep 'revision="android-13' .repo/manifests/default.xml) ]];then echo -e "\033[1;33m=>\033[0m SKIP - source code is \033[1;33mnot Android 13\033[0m";exit;fi
-	
+
+	cd device/xiaomi/psyche
 	dt_branch="$(git branch | sed 's/.*thirteen/thirteen/g' | sed 's/[[:space:]]//g')"
+	cd ../../..
 
 	case $dt_branch in
 		"thirteen")
