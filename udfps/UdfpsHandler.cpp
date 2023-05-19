@@ -113,11 +113,11 @@ class XiaomiKonaUdfpsHandler : public UdfpsHandler {
     }
 
     void onAcquired(int32_t result, int32_t vendorCode) {
-        if (result == FINGERPRINT_ACQUIRED_GOOD || vendorCode == 23) {
+        if (result == FINGERPRINT_ACQUIRED_GOOD) {
 	    set(DISPPARAM_PATH, DISPPARAM_FOD_HBM_OFF);
             int arg[2] = {TOUCH_FOD_ENABLE, FOD_STATUS_OFF};
             ioctl(touch_fd_.get(), TOUCH_IOC_SETMODE, &arg);
-        } else if (vendorCode == 20 || vendorCode == 22)  {
+        } else if (vendorCode == 20 || vendorCode == 21 || vendorCode == 22)  {
             /*
 	    		 *
 			 * Register = 22 & 20 - finger down ; 23 - finger up
