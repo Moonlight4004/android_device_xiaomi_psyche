@@ -1,7 +1,7 @@
 #!/bin/bash
 # This file is generated for Xiaomi 12X (psyche)
 
-dt_bringup_complished=0
+dt_bringup_complished=1
 
 # ROM specs
 rising_specs(){
@@ -167,20 +167,15 @@ psyche_rom_setup(){
 
 	if [[ ! $(grep 'revision="android-13' .repo/manifests/default.xml) ]];then echo -e "\033[1;33m=>\033[0m SKIP - source code is \033[1;33mnot Android 13\033[0m";exit;fi
 	
-	select rom_version in "Stable" "Fastcharge"
-	do
-		case $rom_version in
-			"Stable")
-				dt_branch='thirteen'
-				vendor_branch='thirteen'
-				;;
-			*)
-				dt_branch='thirteen-unstable'
-				vendor_branch='superior-13-unstable'
-				;;
-		esac
-		break
-	done
+	dt_branch="$(git branch | sed 's/.*thirteen/thirteen/g' | sed 's/[[:space:]]//g')"
+
+	case $dt_branch in
+		"thirteen")
+			vendor_branch='thirteen'
+			;;
+		*)
+			vendor_branch='superior-13-unstable'
+	esac
 
 	echo -e "\033[32m=>\033[0m Detect \033[1;36m${rom_str}\033[0m and select device branch \033[1;32m${dt_branch}\033[0m\n"
 	psyche_deps ${dt_branch} ${vendor_branch}
