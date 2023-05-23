@@ -27,8 +27,6 @@ superior_specs(){
 	cat>>$1<<SPECS
 IS_PHONE := true
 
-WITH_GMS := true
-
 # Charging Animation
 TARGET_INCLUDE_PIXEL_CHARGER := true
 
