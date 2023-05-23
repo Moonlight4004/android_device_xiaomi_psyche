@@ -6,7 +6,6 @@ dt_bringup_complished=0
 # ROM specs
 rising_specs(){
 	cat>>$1<<SPECS
-RISING_MAINTAINER := 斯图尔特
 RISING_DEVICE := Xiaomi 12X
 RISING_CHIPSET := Snapdragon®870
 
@@ -129,7 +128,7 @@ psyche_deps(){
 
 	git_check_dir https://github.com//LineageOS/android_hardware_xiaomi lineage-20 hardware/xiaomi
 
-	git_check_dir https://github.com/stuartore/android_device_xiaomi_psyche $1 device/xiaomi/psyche
+	git_check_dir https://github.com/Psyche-development/platform_device_xiaomi_psyche $1 device/xiaomi/psyche
 	git_check_dir https://gitlab.com/stuartore/android_vendor_xiaomi_psyche $2 vendor/xiaomi/psyche
 	git_check_dir https://gitlab.com/stuartore/vendor_xiaomi_psyche-firmware thirteen vendor/xiaomi-firmware/psyche
 	git_check_dir https://github.com/VoidUI-Devices/kernel_xiaomi_sm8250.git aosp-13 kernel/xiaomi/void-aosp-sm8250
