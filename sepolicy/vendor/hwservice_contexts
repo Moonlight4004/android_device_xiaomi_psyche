@@ -33,5 +33,7 @@ vendor.xiaomi.hardware.displayfeature::IDisplayFeature       u:object_r:vendor_h
 
 # Xiaomi charge
 vendor.xiaomi.hardware.micharge::IMiCharge                                           u:object_r:hal_micharge_hwservice:s0
-
 vendor.xiaomi.hardware.misys::IMiSys                                                 u:object_r:hal_misys_hwservice:s0
+
+# Lineage fastcharge
+vendor.lineage.fastcharge::IFastCharge                                               u:object_r:hal_lineage_fastcharge_hwservice:s0
