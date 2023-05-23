@@ -3,7 +3,10 @@ type hal_lineage_fastcharge_default_exec, exec_type, vendor_file_type, file_type
 
 init_daemon_domain(hal_lineage_fastcharge_default)
 
+binder_call(hal_lineage_fastcharge_default, hwservicemanager)
 binder_call(hal_lineage_fastcharge_default, devicesettings_app)
+
+add_hwservice(hal_lineage_fastcharge_default, hal_lineage_fastcharge_hwservice)
 
 allow hal_lineage_fastcharge_default {
   mnt_vendor_file
@@ -15,6 +18,10 @@ allow hal_lineage_fastcharge_default {
 
 allow hal_lineage_fastcharge_default vendor_sysfs_battery_supply:dir search;
 allow hal_lineage_fastcharge_default vendor_sysfs_battery_supply:file rw_file_perms;
+
+allow hal_lineage_fastcharge_default hal_micharge_hwservice:hwservice_manager { add find };
+allow hal_lineage_fastcharge_default hwservicemanager:binder { call transfer };
+allow hal_lineage_fastcharge_default hwservicemanager_prop:file { getattr map open read };
 
 get_prop(hal_lineage_fastcharge_default, vendor_fastcharge_prop)
 set_prop(hal_lineage_fastcharge_default, vendor_fastcharge_prop)
