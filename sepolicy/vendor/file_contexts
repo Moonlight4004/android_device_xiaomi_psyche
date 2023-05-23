@@ -53,8 +53,9 @@
 /dev/block/platform/soc/1d84000.ufshc/by-name/msadp                     u:object_r:vendor_efs_boot_dev:s0
 
 # Elliptic
-/dev/elliptic[0-9]                                                      u:object_r:ultrasound_device:s0
+/dev/elliptic(.*)?                                                      u:object_r:ultrasound_device:s0
 /dev/mius(.*)?                                                          u:object_r:ultrasound_device:s0
+
 # Fastcharge
 /vendor/bin/hw/vendor\.lineage\.fastcharge@1\.0-service\.psyche                u:object_r:hal_lineage_fastcharge_default_exec:s0
 
@@ -101,10 +102,12 @@
 
 # Micharge
 /vendor/bin/hw/vendor\.xiaomi\.hardware\.micharge@1\.0-service               u:object_r:hal_micharge_default_exec:s0
+
 # Misys
 /vendor/bin/hw/vendor\.xiaomi\.hardware\.misys@1\.0-service                  u:object_r:hal_misys_default_exec:s0
 /vendor/bin/hw/vendor\.xiaomi\.hardware\.misys@2\.0-service                  u:object_r:hal_misys_default_exec:s0
 /vendor/bin/hw/vendor\.xiaomi\.hardware\.misys@3\.0-service                  u:object_r:hal_misys_default_exec:s0
+
 # NFC
 /vendor/bin/hw/android\.hardware\.nfc_snxxx@1\.2-service                u:object_r:hal_nfc_default_exec:s0
 
@@ -143,7 +146,6 @@
 
 # Vibrator
 /vendor/bin/hw/vendor\.qti\.hardware\.vibrator\.service\.xiaomi_kona    u:object_r:hal_vibrator_default_exec:s0
-
 
 # Vibrator Permissions
 /sys/class/leds/vibrator_aw8697(/.*)?                                                   u:object_r:sysfs_leds:s0
