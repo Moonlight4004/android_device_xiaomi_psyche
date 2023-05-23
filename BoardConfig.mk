@@ -125,7 +125,7 @@ BOARD_KERNEL_CMDLINE += \
     console=ttyMSM0,115200n8 \
     pcie_ports=compat \
     kpti=off
-BOARD_KERNEL_CMDLINE += androidboot.selinux=permissive
+#BOARD_KERNEL_CMDLINE += androidboot.selinux=permissive
 BOARD_KERNEL_IMAGE_NAME := Image
 BOARD_INCLUDE_DTB_IN_BOOTIMG := true
 BOARD_KERNEL_SEPARATED_DTBO := true
@@ -189,7 +189,6 @@ $(foreach p, $(call to-upper, $(SSI_PARTITIONS)), \
     $(eval BOARD_$(p)IMAGE_PARTITION_RESERVED_SIZE := $(SSI_PARTITIONS_RESERVED_SIZE)))
 $(foreach p, $(call to-upper, $(TREBLE_PARTITIONS)), \
     $(eval BOARD_$(p)IMAGE_PARTITION_RESERVED_SIZE := 30720000))
-BOARD_SYSTEM_EXTIMAGE_EXTFS_INODE_COUNT := -1
 
 # Platform
 BOARD_VENDOR := xiaomi
