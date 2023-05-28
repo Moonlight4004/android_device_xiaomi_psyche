@@ -55,6 +55,21 @@ TARGET_SUPPORTS_GOOGLE_RECORDER := true
 SPECS
 }
 
+pixys_specs(){
+	cat>>$1<<SPECS
+TARGET_BOOT_ANIMATION_RES := 1080
+TARGET_INCLUDE_LIVE_WALLPAPERS := true
+TARGET_INCLUDE_STOCK_ARCORE := false
+TARGET_FACE_UNLOCK_SUPPORTED := true
+TARGET_SUPPORTS_QUICK_TAP := true
+TARGET_SUPPORTS_GOOGLE_RECORDER := true
+TARGET_GAPPS_ARCH := arm64
+
+TARGET_USES_MINI_GAPPS := true
+TARGET_SUPPORTS_GOOGLE_RECORDER := true
+SPECS
+}
+
 aosp_specs(){
 	cat>>$1<<SPECS
 TARGET_USES_MINI_GAPPS := true
@@ -103,6 +118,8 @@ dt_bringup(){
 			"derp")
 				derpfest_specs $dt_new_main_mk
 				;;
+			"pixys")
+				pixys_specs $dt_new_main_mk
 			*)
 				aosp_specs $dt_new_main_mk
 				;;
