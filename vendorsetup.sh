@@ -120,6 +120,7 @@ dt_bringup(){
 				;;
 			"pixys")
 				pixys_specs $dt_new_main_mk
+				;;
 			*)
 				aosp_specs $dt_new_main_mk
 				;;
