@@ -210,6 +210,7 @@ PRODUCT_DEX_PREOPT_DEFAULT_COMPILER_FILTER := verify
 # Device-specific settings
 PRODUCT_PACKAGES += \
     XiaomiParts
+ifeq ($(TARGET_USES_MIUI_DOLBY),true)
 # Miui Dolby Engine Topic
 # Dolby Sepolicy
 BOARD_VENDOR_SEPOLICY_DIRS += $(DEVICE_PATH)/sepolicy/dolby
@@ -238,6 +239,15 @@ PRODUCT_COPY_FILES += \
 # Remove Packages for Dolby Support
 PRODUCT_PACKAGES += \
     RemovePackagesDolby
+
+else
+# MiSound (Dirac Only)
+# MiSound without Dolby (By Default - Enabled)
+PRODUCT_VENDOR_PROPERTIES += \
+    persist.vendor.audio.misound.disable=false \
+    ro.vendor.audio.misound.bluetooth.enable=true
+endif
+
 
 # Display
 PRODUCT_PACKAGES += \

@@ -102,14 +102,18 @@ DEVICE_FRAMEWORK_COMPATIBILITY_MATRIX_FILE := \
     $(DEVICE_PATH)/configs/hidl/xiaomi_framework_compatibility_matrix.xml \
     vendor/aosp/config/device_framework_matrix.xml
 
-DEVICE_FRAMEWORK_COMPATIBILITY_MATRIX_FILE += \
-     $(DEVICE_PATH)/dolby/manifests/dolby_framework_matrix.xml
 DEVICE_MATRIX_FILE += $(DEVICE_PATH)/configs/hidl/compatibility_matrix.xml
 DEVICE_MANIFEST_FILE += $(DEVICE_PATH)/configs/hidl/manifest.xml
 DEVICE_MANIFEST_FILE += $(DEVICE_PATH)/configs/hidl/xiaomi_manifest.xml
 
 ODM_MANIFEST_SKUS += nfc
 ODM_MANIFEST_NFC_FILES := $(DEVICE_PATH)/configs/hidl/manifest_nfc.xml
+
+ifeq ($(TARGET_USES_MIUI_DOLBY),true)
+DEVICE_FRAMEWORK_COMPATIBILITY_MATRIX_FILE += \
+     $(DEVICE_PATH)/dolby/manifests/dolby_framework_matrix.xml
+endif
+
 # Init
 TARGET_INIT_VENDOR_LIB ?= //$(DEVICE_PATH):init_xiaomi_psyche
 TARGET_RECOVERY_DEVICE_MODULES ?= init_xiaomi_psyche
@@ -248,6 +252,7 @@ BOARD_AVB_RECOVERY_ALGORITHM := SHA256_RSA4096
 BOARD_AVB_RECOVERY_ROLLBACK_INDEX := 1
 BOARD_AVB_RECOVERY_ROLLBACK_INDEX_LOCATION := 1
 BOARD_MOVE_GSI_AVB_KEYS_TO_VENDOR_BOOT := true
+
 
 
 # WiFi
