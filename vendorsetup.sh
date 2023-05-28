@@ -192,7 +192,7 @@ psyche_rom_setup(){
 			vendor_branch='thirteen'
 			;;
 		*)
-			vendor_branch='superior-13-unstable'
+			vendor_branch='thirteen-unstable'
 	esac
 
 	echo -e "\033[32m=>\033[0m Detect \033[1;36m${rom_str}\033[0m and select device branch \033[1;32m${dt_branch}\033[0m\n"
