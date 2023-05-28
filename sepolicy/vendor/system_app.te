@@ -1,12 +1,17 @@
-allow system_app vendor_sysfs_battery_supply:dir { search };
-allow system_app vendor_sysfs_battery_supply:file { read };
-allow system_app vendor_sysfs_battery_supply:file { open };
-allow system_app vendor_sysfs_battery_supply:file { getattr };
+allow system_app sysfs_battery_supply:dir { search read open getattr};
+allow system_app sysfs_battery_supply:file { read open getattr};
+
+allow system_app sysfs_wakeup:dir { search read open getattr};
+allow system_app sysfs_wakeup:file { read open getattr};
+
 allow system_app vendor_sysfs_graphics:file { getattr open read };
 
-r_dir_file(system_app, vendor_sysfs_battery_supply)
+r_dir_file(system_app, sysfs_battery_supply)
+r_dir_file(system_app, sysfs_wakeup)
 
-allow system_app vendor_sysfs_battery_supply:dir { search };
-allow system_app vendor_sysfs_battery_supply:file { getattr open read };
+# Miui Sepolicy for Vendor Audio Files
+allow system_app vendor_audio_data_file:dir {write add_name search};
+allow system_app vendor_audio_data_file:file {read write create getattr append open};
 
-r_dir_file(system_app, vendor_sysfs_battery_supply)
+# Allow Parts write thermals
+allow system_app sysfs_thermal:file rw_file_perms;
