@@ -97,7 +97,7 @@ dt_bringup(){
 		mv $dt_main_mk $dt_new_main_mk
 	fi
 	if [[ ! -f ${rom_spec_str}.dependencies ]];then
-		mv aosp.dependencies ${rom_spec_str}.dependencies
+		mv ${dt_old_str}.dependencies ${rom_spec_str}.dependencies
 	fi
 	if [[ ! -f ../../../vendor/${rom_spec_str}/config/device_framework_matrix.xml ]] && [[ -f configs/hidl/aosp_device_framework_matrix.xml ]];then
 		mv configs/hidl/aosp_device_framework_matrix.xml ../../../vendor/${rom_spec_str}/config/device_framework_matrix.xml
