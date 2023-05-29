@@ -35,6 +35,7 @@
 
 # Display Panel Features
 /sys/class/drm/card0/card0-DSI-1/disp_param                              u:object_r:vendor_sysfs_graphics:s0
+/sys/devices/platform/soc/ae00000.qcom,mdss_mdp/drm/card0/card0-DSI-1/disp_param u:object_r:vendor_sysfs_graphics:s0
 /sys/class/backlight/panel0-backlight/brightness                         u:object_r:vendor_sysfs_graphics:s0
 /sys/class/backlight/panel0-backlight/brightness_clone                   u:object_r:vendor_sysfs_graphics:s0
 /sys/class/drm/card0-DSI-1/disp_param                                    u:object_r:vendor_sysfs_graphics:s0

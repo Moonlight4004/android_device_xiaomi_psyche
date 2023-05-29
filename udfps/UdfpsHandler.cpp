@@ -29,7 +29,11 @@
 #define TOUCH_IOC_SETMODE TOUCH_MAGIC + 0
 
 #define DISPPARAM_PATH "/sys/devices/platform/soc/ae00000.qcom,mdss_mdp/drm/card0/card0-DSI-1/disp_param"
-#define DISPPARAM_FOD_HBM_OFF "0xE0000"
+
+#define DISPPARAM_HBM_ON "0x10000"
+#define DISPPARAM_HBM_FOD_ON "0x20000"
+#define DISPPARAM_HBM_OFF "0xF0000"
+#define DISPPARAM_HBM_FOD_OFF "0xE0000"
 
 static const char* kFodUiPaths[] = {
         "/sys/devices/platform/soc/soc:qcom,dsi-display-primary/fod_ui",
@@ -97,47 +101,33 @@ class XiaomiKonaUdfpsHandler : public UdfpsHandler {
                     LOG(ERROR) << "failed to poll fd, err: " << rc;
                     continue;
                 }
-			
-                mDevice->extCmd(mDevice, COMMAND_NIT,
-                                readBool(fd) ? PARAM_NIT_FOD : PARAM_NIT_NONE);
+
             }
         }).detach();
     }
 
     void onFingerDown(uint32_t /*x*/, uint32_t /*y*/, float /*minor*/, float /*major*/) {
-        // nothing
+	set(DISPPARAM_PATH, DISPPARAM_HBM_ON);
+	//set(DISPPARAM_PATH, DISPPARAM_HBM_FOD_ON);
+	mDevice->extCmd(mDevice, COMMAND_NIT, PARAM_NIT_FOD);
+	int arg[2] = {TOUCH_FOD_ENABLE, FOD_STATUS_ON};
+	ioctl(touch_fd_.get(), TOUCH_IOC_SETMODE, &arg);
     }
 
     void onFingerUp() {
-        // nothing
+	set(DISPPARAM_PATH, DISPPARAM_HBM_OFF);
+	//set(DISPPARAM_PATH, DISPPARAM_HBM_FOD_OFF);
+	mDevice->extCmd(mDevice, COMMAND_NIT, PARAM_NIT_NONE);
+	int arg[2] = {TOUCH_FOD_ENABLE, FOD_STATUS_OFF};
+	ioctl(touch_fd_.get(), TOUCH_IOC_SETMODE, &arg);
     }
 
     void onAcquired(int32_t result, int32_t vendorCode) {
-        if (result == FINGERPRINT_ACQUIRED_GOOD) {
-	    set(DISPPARAM_PATH, DISPPARAM_FOD_HBM_OFF);
-            int arg[2] = {TOUCH_FOD_ENABLE, FOD_STATUS_OFF};
-            ioctl(touch_fd_.get(), TOUCH_IOC_SETMODE, &arg);
-        } else if (vendorCode == 20 || vendorCode == 21 || vendorCode == 22)  {
-            /*
-	    		 *
-			 * Register = 22 & 20 - finger down ; 23 - finger up
-			 *	low brightness = 21 - waiting ; 20 - finger down ; 33 - failed ; and end 8,6 message
-			 *
-			 *
-			 *
-			 *
-			 * Fod pass authented = 0
-			 * Fod ditry: 3, 0
-             */
-            int arg[2] = {TOUCH_FOD_ENABLE, FOD_STATUS_ON};
-            ioctl(touch_fd_.get(), TOUCH_IOC_SETMODE, &arg);
-        }
+    	//nothing
     }
 
     void cancel() {
-	set(DISPPARAM_PATH, DISPPARAM_FOD_HBM_OFF);
-        int arg[2] = {TOUCH_FOD_ENABLE, FOD_STATUS_OFF};
-        ioctl(touch_fd_.get(), TOUCH_IOC_SETMODE, &arg);
+	//nothing
     }
   private:
     fingerprint_device_t *mDevice;
