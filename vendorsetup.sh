@@ -1,7 +1,7 @@
 #!/bin/bash
 # This file is generated for Xiaomi 12X (psyche)
 
-dt_bringup_complished=0
+dt_bringup_complished=1
 
 # ROM specs
 rising_specs(){
@@ -105,7 +105,7 @@ dt_bringup(){
 	if [[ -f ../../../packages/resources/devicesettings/Android.bp ]] && [[ -f parts/Android.bp ]];then
 		old_parts_settings_str="$(grep settings.resources parts/Android.bp | sed 's/[[:space:]]//g')"
 		new_parts_settings_str="$(grep name: ../../../packages/resources/devicesettings/Android.bp | sed 's/[[:space:]]//g' | sed 's/name://g')"
-		sed -i 's/'"${old_parts_settings_str}"'/'"$(new_parts_settings_str)"'/g' parts/Android.bp
+		sed -i 's/'"${old_parts_settings_str}"'/'"${new_parts_settings_str}"'/g' parts/Android.bp
 	fi
 
 	if [[ ! $(grep AUTOADD $dt_new_main_mk) ]];then
