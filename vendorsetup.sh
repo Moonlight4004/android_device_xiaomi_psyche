@@ -1,7 +1,7 @@
 #!/bin/bash
 # This file is generated for Xiaomi 12X (psyche)
 
-dt_bringup_complished=1
+dt_bringup_complished=0
 
 # ROM specs
 rising_specs(){
@@ -103,9 +103,11 @@ dt_bringup(){
 		mv configs/hidl/aosp_device_framework_matrix.xml ../../../vendor/${rom_spec_str}/config/device_framework_matrix.xml
 	fi
 	if [[ -f ../../../packages/resources/devicesettings/Android.bp ]] && [[ -f parts/Android.bp ]];then
-		old_parts_settings_str="$(grep settings.resources parts/Android.bp | sed 's/[[:space:]]//g')"
-		new_parts_settings_str="$(grep name: ../../../packages/resources/devicesettings/Android.bp | sed 's/[[:space:]]//g' | sed 's/name://g')"
-		sed -i 's/'"${old_parts_settings_str}"'/'"${new_parts_settings_str}"'/g' parts/Android.bp
+		if [[ $(grep settings.resource ../../../packages/resources/devicesettings/Android.bp | grep -c 'name:') -eq 1 ]];then
+			old_parts_settings_str="$(grep settings.resources parts/Android.bp | sed 's/[[:space:]]//g')"
+			new_parts_settings_str="$(grep name: ../../../packages/resources/devicesettings/Android.bp | sed 's/[[:space:]]//g' | sed 's/name://g')"
+			sed -i 's/'"${old_parts_settings_str}"'/'"${new_parts_settings_str}"'/g' parts/Android.bp
+		fi
 	fi
 
 	if [[ ! $(grep AUTOADD $dt_new_main_mk) ]];then
