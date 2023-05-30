@@ -102,32 +102,41 @@ class XiaomiKonaUdfpsHandler : public UdfpsHandler {
                     continue;
                 }
 
-            }
+		switch (readBool(fd))
+		{
+			case true:{
+			    set(DISPPARAM_PATH, DISPPARAM_HBM_ON);
+			    int arg[2] = {TOUCH_FOD_ENABLE, FOD_STATUS_ON};
+			    ioctl(touch_fd_.get(), TOUCH_IOC_SETMODE, &arg);
+			    mDevice->extCmd(mDevice, COMMAND_NIT, PARAM_NIT_FOD);
+			    break;
+			}
+			default:{
+			    mDevice->extCmd(mDevice, COMMAND_NIT, PARAM_NIT_NONE);
+		       	    set(DISPPARAM_PATH, DISPPARAM_HBM_OFF);
+			    int arg[2] = {TOUCH_FOD_ENABLE, FOD_STATUS_OFF};
+			    ioctl(touch_fd_.get(), TOUCH_IOC_SETMODE, &arg);
+			    break;
+			}
+		}
+          }
         }).detach();
     }
 
     void onFingerDown(uint32_t /*x*/, uint32_t /*y*/, float /*minor*/, float /*major*/) {
-	set(DISPPARAM_PATH, DISPPARAM_HBM_ON);
-	//set(DISPPARAM_PATH, DISPPARAM_HBM_FOD_ON);
-	mDevice->extCmd(mDevice, COMMAND_NIT, PARAM_NIT_FOD);
-	int arg[2] = {TOUCH_FOD_ENABLE, FOD_STATUS_ON};
-	ioctl(touch_fd_.get(), TOUCH_IOC_SETMODE, &arg);
+	//nothing
     }
 
     void onFingerUp() {
-	set(DISPPARAM_PATH, DISPPARAM_HBM_OFF);
-	//set(DISPPARAM_PATH, DISPPARAM_HBM_FOD_OFF);
-	mDevice->extCmd(mDevice, COMMAND_NIT, PARAM_NIT_NONE);
-	int arg[2] = {TOUCH_FOD_ENABLE, FOD_STATUS_OFF};
-	ioctl(touch_fd_.get(), TOUCH_IOC_SETMODE, &arg);
+	//nothing
     }
 
     void onAcquired(int32_t result, int32_t vendorCode) {
-    	//nothing
+        //nothing
     }
 
     void cancel() {
-	//nothing
+       	//nothing
     }
   private:
     fingerprint_device_t *mDevice;
