@@ -102,6 +102,11 @@ dt_bringup(){
 	if [[ ! -f ../../../vendor/${rom_spec_str}/config/device_framework_matrix.xml ]] && [[ -f configs/hidl/aosp_device_framework_matrix.xml ]];then
 		mv configs/hidl/aosp_device_framework_matrix.xml ../../../vendor/${rom_spec_str}/config/device_framework_matrix.xml
 	fi
+	if [[ -f ../../../packages/resources/devicesettings/Android.bp ]] && [[ -f parts/Android.bp ]];then
+		old_parts_settings_str="$(grep settings.resources parts/Android.bp | sed 's/[[:space:]]//g')"
+		new_parts_settings_str="$(grep name: ../../../packages/resources/devicesettings/Android.bp | sed 's/[[:space:]]//g' | sed 's/name://g')"
+		sed -i 's/'"${old_parts_settings_str}"'/'"$(new_parts_settings_str)"'/g' parts/Android.bp
+	fi
 
 	if [[ ! $(grep AUTOADD $dt_new_main_mk) ]];then
 		sed -i '$a \
