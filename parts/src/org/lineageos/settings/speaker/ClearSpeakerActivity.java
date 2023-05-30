@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020-2022 The LineageOS Project
+ * Copyright (C) 2020 Paranoid Android
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,32 +14,39 @@
  * limitations under the License.
  */
 
-package org.lineageos.settings.thermal;
+package org.lineageos.settings.speaker;
 
+import android.app.Activity;
+import android.app.Fragment;
 import android.os.Bundle;
 import android.view.MenuItem;
 
 import com.android.settingslib.collapsingtoolbar.CollapsingToolbarBaseActivity;
 import com.android.settingslib.widget.R;
 
-public class ThermalActivity extends CollapsingToolbarBaseActivity {
-
-    private static final String TAG_THERMAL = "thermal";
-    private static final String THERMAL_SCONFIG = "/sys/class/thermal/thermal_message/sconfig";
+public class ClearSpeakerActivity extends CollapsingToolbarBaseActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        getFragmentManager().beginTransaction().replace(R.id.content_frame,
-                new ThermalSettingsFragment(), TAG_THERMAL).commit();
+
+
+        Fragment fragment = getFragmentManager().findFragmentById(R.id.content_frame);
+        ClearSpeakerFragment clearSpeakerFragment;
+        if (fragment == null) {
+            clearSpeakerFragment = new ClearSpeakerFragment();
+            getFragmentManager().beginTransaction()
+                    .add(R.id.content_frame, clearSpeakerFragment)
+                    .commit();
+        }
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == android.R.id.home) {
-            onBackPressed();
+            finishAfterTransition();
             return true;
         }
-        return false;
+        return super.onOptionsItemSelected(item);
     }
 }
